@@ -20,7 +20,7 @@ namespace ESP_Reader_and_Sorter
         private SqliteConnection _connection;
         private SqliteCompiler Compiler;
 
-        private DataStore store;
+        //private DataStore store;
 
         // Set a global variable to hold all the selected files result
         List<String> fullFileName;
@@ -63,29 +63,49 @@ namespace ESP_Reader_and_Sorter
 
         private void btn_openDatabase_Click(object sender, EventArgs e)
         {
-            using (var connection = new SqliteConnection("Data Source=hello.db"))
+            _connection = CreateConnection();
+            foreach (var item in listBx_files.Items)
             {
-                connection.Open();
+                string fileName = item.ToString();
 
-                var command = connection.CreateCommand();
-                command.CommandText =
-                @"
-        SELECT name
-        FROM user
-        WHERE id = $id
-    ";
-                command.Parameters.AddWithValue("$id", id);
-
-                using (var reader = command.ExecuteReader())
+                // Insert each item into the database
+                using (SqliteConnection connection = new SqliteConnection("Data Source= database.db;"))
                 {
-                    while (reader.Read())
-                    {
-                        var name = reader.GetString(0);
+                    connection.Open();
 
-                        Console.WriteLine($"Hello, {name}!");
+                    string sql = "CREATE TABLE IF NOT EXISTS Files (" +
+                        "FileID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "FileName TEXT NOT NULL" +
+                        ");" +
+                        "INSERT INTO Files (FileName) VALUES (@fileName)";
+                    using (SqliteCommand cmd = new SqliteCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@fileName", fileName);
+                        cmd.ExecuteNonQuery();
                     }
+
+                    connection.Close();
                 }
             }
+        }
+
+        static SqliteConnection CreateConnection()
+        {
+
+            SqliteConnection sqlite_conn;
+            // Create a new database connection:
+            sqlite_conn = new SqliteConnection("Data Source= " +
+                "database.db;");
+            // Open the connection:
+            try
+            {
+                sqlite_conn.Open();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return sqlite_conn;
         }
     }
 }

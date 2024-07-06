@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 using SqlKata;
 using SqlKata.Compilers;
 
-namespace Datastore;
+namespace DataStore;/*
 public class DataStore
 {
 
@@ -299,3 +299,4 @@ INSERT INTO init_status VALUES (0, 1);";
         Util.Delete(command);
     }
 }
+*/

@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESP_Reader_and_Sorter", "ESP_Reader_and_Sorter\ESP_Reader_and_Sorter.csproj", "{CB094139-605D-4DB1-9B10-CF3644FE99BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ESP_Reader_and_Sorter", "ESP_Reader_and_Sorter\ESP_Reader_and_Sorter.csproj", "{CB094139-605D-4DB1-9B10-CF3644FE99BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
