@@ -20,7 +20,6 @@ namespace ESP_Reader_and_Sorter
         private SqliteConnection _connection;
         private SqliteCompiler Compiler;
 
-        //private DataStore store;
 
         // Set a global variable to hold all the selected files result
         List<String> fullFileName;
@@ -29,7 +28,7 @@ namespace ESP_Reader_and_Sorter
             InitializeComponent();
         }
 
-        private void btn_OpenFile_Click(object sender, EventArgs e)
+        /*private void btn_OpenFile_Click(object sender, EventArgs e)
         {
 
             OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
@@ -48,7 +47,7 @@ namespace ESP_Reader_and_Sorter
 
 
             }
-            /*
+            
             FileStream fs = new FileStream(@"C:\Users\nc471\Downloads\Interplay 10mm SMG\Interplay10mmSMG.esp", FileMode.Open);
             int hexIn;
             String hex;
@@ -58,7 +57,7 @@ namespace ESP_Reader_and_Sorter
                 hex = string.Format("{0:X2}", hexIn);
                 labl_FileRead.Text += hex;
             }
-            */
+            
         }
 
         private void btn_openDatabase_Click(object sender, EventArgs e)
@@ -68,7 +67,7 @@ namespace ESP_Reader_and_Sorter
             {
                 string fileName = item.ToString();
 
-                // Insert each item into the database
+                // Insert each item from the list box into the database
                 using (SqliteConnection connection = new SqliteConnection("Data Source= database.db;"))
                 {
                     connection.Open();
@@ -106,6 +105,6 @@ namespace ESP_Reader_and_Sorter
 
             }
             return sqlite_conn;
-        }
-    }
+        }*/
+    } 
 }

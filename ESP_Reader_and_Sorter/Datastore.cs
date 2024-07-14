@@ -4,6 +4,7 @@ using SqlKata;
 using SqlKata.Compilers;
 
 namespace DataStore;/*
+                     * This is all old backend code from a prior project with a similar function. Reference for basic use later
 public class DataStore
 {
 
