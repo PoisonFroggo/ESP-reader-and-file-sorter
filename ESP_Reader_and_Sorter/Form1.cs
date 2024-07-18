@@ -11,6 +11,8 @@ using System.IO;
 using Microsoft.Data.Sqlite;
 using SqlKata;
 using SqlKata.Compilers;
+using System.Drawing.Text;
+using System.Text.RegularExpressions;
 
 
 namespace ESP_Reader_and_Sorter
@@ -23,10 +25,59 @@ namespace ESP_Reader_and_Sorter
 
         // Set a global variable to hold all the selected files result
         List<String> fullFileName;
+
+        private LoginControl loginControl;
+        private AddFilesControl addFilesControl;
         public Form1()
         {
             InitializeComponent();
+            loginControl = new LoginControl();
+            loginControl.Dock = DockStyle.Fill;
+            this.Controls.Add(loginControl);
+
+            // Initialize AddFilesControl
+            addFilesControl = new AddFilesControl();
+            addFilesControl.Dock = DockStyle.Fill;
+            addFilesControl.Visible = false; // Start with AddFilesControl hidden
+            this.Controls.Add(addFilesControl);
+            LoginControl_LoginSuccessChanged();
         }
+
+        
+        public void LoginControl_LoginSuccessChanged()
+        {
+            loginControl.LoginPerformed += (s, args) =>
+            {
+                loginControl.Visible = false;
+                addFilesControl.Visible = true;
+            };
+        }
+
+        private void MatchMaking()
+        {
+            string inputData = @"Some text with file names like file1.txt, file2.docx, and another_file.pdf embedded within.";
+
+            // Define a regular expression pattern to match file names
+            string pattern = @"[a-zA-Z0-9_]+\.[a-zA-Z0-9]{2,4}";
+
+            // Find all matches using Regex
+            MatchCollection matches = Regex.Matches(inputData, pattern);
+
+            // Extract file names from matches and add them to an array
+            string[] fileNames = new string[matches.Count];
+            for (int i = 0; i<matches.Count; i++)
+            {
+                fileNames[i] = matches[i].Value;
+            }
+
+        // Print the file names found
+        MessageBox.Show("File names found in the input:");
+            foreach (string fileName in fileNames)
+            {
+                MessageBox.Show(fileName);
+            }
+        }
+
 
         /*private void btn_OpenFile_Click(object sender, EventArgs e)
         {
@@ -106,5 +157,5 @@ namespace ESP_Reader_and_Sorter
             }
             return sqlite_conn;
         }*/
-    } 
+    }
 }

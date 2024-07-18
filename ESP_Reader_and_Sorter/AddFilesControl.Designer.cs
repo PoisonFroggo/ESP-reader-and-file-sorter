@@ -31,13 +31,14 @@
             btn_browseFiles = new System.Windows.Forms.Button();
             folderBrowser_fileSearch = new System.Windows.Forms.OpenFileDialog();
             listBx_files = new System.Windows.Forms.ListBox();
+            btn_browseDatabase = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // btn_browseFiles
             // 
             btn_browseFiles.Location = new System.Drawing.Point(3, 3);
             btn_browseFiles.Name = "btn_browseFiles";
-            btn_browseFiles.Size = new System.Drawing.Size(80, 72);
+            btn_browseFiles.Size = new System.Drawing.Size(178, 72);
             btn_browseFiles.TabIndex = 0;
             btn_browseFiles.Text = "Browse Files";
             btn_browseFiles.UseVisualStyleBackColor = true;
@@ -52,19 +53,30 @@
             // 
             listBx_files.FormattingEnabled = true;
             listBx_files.ItemHeight = 15;
-            listBx_files.Location = new System.Drawing.Point(203, 61);
+            listBx_files.Location = new System.Drawing.Point(3, 81);
             listBx_files.Name = "listBx_files";
-            listBx_files.Size = new System.Drawing.Size(120, 94);
+            listBx_files.Size = new System.Drawing.Size(368, 139);
             listBx_files.TabIndex = 1;
+            // 
+            // btn_browseDatabase
+            // 
+            btn_browseDatabase.Location = new System.Drawing.Point(187, 3);
+            btn_browseDatabase.Name = "btn_browseDatabase";
+            btn_browseDatabase.Size = new System.Drawing.Size(184, 72);
+            btn_browseDatabase.TabIndex = 2;
+            btn_browseDatabase.Text = "Browse Database";
+            btn_browseDatabase.UseVisualStyleBackColor = true;
+            btn_browseDatabase.Click += btn_browseDatabase_Click;
             // 
             // AddFilesControl
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            Controls.Add(btn_browseDatabase);
             Controls.Add(listBx_files);
             Controls.Add(btn_browseFiles);
             Name = "AddFilesControl";
-            Size = new System.Drawing.Size(511, 243);
+            Size = new System.Drawing.Size(374, 243);
             ResumeLayout(false);
         }
 
@@ -73,5 +85,6 @@
         private System.Windows.Forms.Button btn_browseFiles;
         private System.Windows.Forms.OpenFileDialog folderBrowser_fileSearch;
         private System.Windows.Forms.ListBox listBx_files;
+        private System.Windows.Forms.Button btn_browseDatabase;
     }
 }

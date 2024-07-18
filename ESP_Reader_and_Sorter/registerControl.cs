@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,23 +21,43 @@ namespace ESP_Reader_and_Sorter
         {
             InitializeComponent();
         }
+            //event and bool for handling the login process
 
         String exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.FullName;
 
+
+        private bool isTrue = false;
+        public event EventHandler<EventArgs>? LoginPerformed;
+        public void OnLoginPerformed()
+        {
+            LoginPerformed?.Invoke(this, EventArgs.Empty);
+        }
         private void btn_SubmitLogin_Click(object sender, EventArgs e)
         {
-            String password = txtbx_Password.Text;
-            String username = txtbx_Username.Text;
+            // Example logic to handle login submission
+            string password = txtbx_Password.Text;
+            string username = txtbx_Username.Text;
 
-            if (password != null && username != null)
+            // Perform your authentication logic here
+            bool loginSuccessful = AuthenticateUser(username, password);
+
+            if (loginSuccessful)
             {
-                var Sql = @"CREATE TABLE IF NOT EXISTS database.authors(
-                                    id INTEGER AUTOINCREMENT PRIMARY KEY,
-                                    first_name TEXT NOT NULL,
-                                    last_name TEXT NOT NULL
-                                    )";
+                MessageBox.Show("Login successful!");
+                OnLoginPerformed();
             }
+            else
+            {
+                MessageBox.Show("Login failed. Please try again.");
+            }
+        }
+
+        private bool AuthenticateUser(string username, string password)
+        {
+            // Example authentication logic (replace with your actual logic)
+            // Here, we are just checking if username and password are not empty
+            return !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password);
         }
 
         private void btn_RegisterLogin_Click(object sender, EventArgs e)
@@ -44,6 +65,7 @@ namespace ESP_Reader_and_Sorter
             String password = txtbx_Password.Text;
             String username = txtbx_Username.Text;
             PrintSQLiteDatabases(exePath);
+            InsertCredentials(username, password);
             //PrintSQLiteDatabases(path);
             if (password != null && username != null)
             {
@@ -54,79 +76,37 @@ namespace ESP_Reader_and_Sorter
         }
 
 
+
+
         public void InsertCredentials(string username, string password)
         {
+            MessageBox.Show("Function InsertCredentials called");
             SqliteConnection myConn = new SqliteConnection("DataSource=database.db;");
             myConn.Open();
             MessageBox.Show("Connection Opened");
 
+            //Use to create tables if needed
             string createTableQuery = @"
-            CREATE TABLE IF NOT EXISTS Directories (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Username TEXT NOT NULL,
-                Password TEXT NOT NULL
-            );";
+            CREATE TABLE IF NOT EXISTS ""Accounts"" (
+            	""ID""	INTEGER NOT NULL UNIQUE,
+            	""username""	TEXT NOT NULL UNIQUE,
+            	""pw""	INTEGER NOT NULL UNIQUE,
+            	""gameName""	TEXT NOT NULL,
+            	PRIMARY KEY(""ID"" AUTOINCREMENT)
+                        );";
 
-            // SQL query to insert username and password into 'Directories' table
-            string insertQuery = @"
-            INSERT INTO Directories (Username, Password)
-            VALUES (@Username, @Password);";
+            // Use just in case the tables were done incorrectly 
+            string dropTables = @"DROP TABLE IF EXISTS ""Files""; 
+                DROP TABLE IF EXISTS ""ESP"";
+                DROP TABLE IF EXISTS ""Accounts"";";
 
-            string sql = "CREATE TABLE highscores (name VARCHAR(20), score INT)";
-            SqliteCommand command = new SqliteCommand(sql, myConn);
+            string sql = "CREATE TABLE IF NOT EXISTS highscores (name VARCHAR(20), score INT)";
+            SqliteCommand command = new SqliteCommand(createTableQuery, myConn);
             command.ExecuteNonQuery();
 
             myConn.Close();
             MessageBox.Show("Connection Closed");
         }
-            /*MessageBox.Show("Calling function InsertCredentials");
-            // SQL query to create 'Directories' table if not exists
-            string createTableQuery = @"
-            CREATE TABLE IF NOT EXISTS Directories (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Username TEXT NOT NULL,
-                Password TEXT NOT NULL
-            );";
-
-            // SQL query to insert username and password into 'Directories' table
-            string insertQuery = @"
-            INSERT INTO Directories (Username, Password)
-            VALUES (@Username, @Password);";
-
-            try
-            {
-                // Open connection to SQLite database
-                using (SqliteConnection connection = new SqliteConnection(exePath))
-                {
-                    connection.Open();
-                    MessageBox.Show("Connection Opened");
-
-                    // Create 'Directories' table if it doesn't exist
-                    using (SqliteCommand createTableCommand = new SqliteCommand(createTableQuery, connection))
-                    {
-                        createTableCommand.ExecuteNonQuery();
-                    }
-                    MessageBox.Show("Table Created");
-
-                    // Insert username and password into 'Directories' table
-                    using (SqliteCommand insertCommand = new SqliteCommand(insertQuery, connection))
-                    {
-                        insertCommand.Parameters.AddWithValue("@Username", username);
-                        insertCommand.Parameters.AddWithValue("@Password", password);
-                        insertCommand.ExecuteNonQuery();
-                    }
-                    MessageBox.Show("Values injected");
-
-                    // Close the connection
-                    connection.Close();
-                    MessageBox.Show("Connection Closed");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error 1: {ex.Message}");
-            }
-        }*/
 
         // Function to print all SQLite databases in a directory
         public void PrintSQLiteDatabases(string directoryPath)
@@ -156,28 +136,48 @@ namespace ESP_Reader_and_Sorter
         {
             MessageBox.Show("Calling function PrintTableNames");
             // Establish connection to SQLite database
-            using (SqliteConnection connection = new SqliteConnection($"Data Source={exePath};"))
+
+            SqliteConnection myConn = new SqliteConnection("DataSource=database.db;");
+            myConn.Open();
+            MessageBox.Show("Connection Opened");
+
+
+            string query = "SELECT name FROM sqlite_schema WHERE type='table';";
+            SqliteCommand cmd = new SqliteCommand(query, myConn);
+            SqliteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
-                try
-                {
-                    connection.Open();
-
-                    // Retrieve the names of all tables in the database
-                    DataTable tableSchema = connection.GetSchema("Tables");
-                    MessageBox.Show($"Tables in {exePath}:");
-                    foreach (DataRow row in tableSchema.Rows)
-                    {
-                        string tableName = (string)row["TABLE_NAME"];
-                        MessageBox.Show(tableName);
-                    }
-
-                    connection.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error 2: {ex.Message}");
-                }
+                string tableName = reader.GetString(0);
+                MessageBox.Show(tableName);
             }
+
+            myConn.Close();
+            MessageBox.Show("Connection Closed");
+
+        }
+
+        public void PrintTableContents()
+        {
+            MessageBox.Show("Calling function PrintTableContents");
+            // Establish connection to SQLite database
+
+            SqliteConnection myConn = new SqliteConnection("DataSource=database.db;");
+            myConn.Open();
+            MessageBox.Show("Connection Opened");
+
+
+            string query = "SELECT name FROM sqlite_schema WHERE type='table';";
+            SqliteCommand cmd = new SqliteCommand(query, myConn);
+            SqliteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                string tableName = reader.GetString(0);
+                MessageBox.Show(tableName);
+            }
+
+            myConn.Close();
+            MessageBox.Show("Connection Closed");
+
         }
     }
 }
