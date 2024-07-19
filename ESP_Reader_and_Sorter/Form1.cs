@@ -43,7 +43,7 @@ namespace ESP_Reader_and_Sorter
             LoginControl_LoginSuccessChanged();
         }
 
-        
+
         public void LoginControl_LoginSuccessChanged()
         {
             loginControl.LoginPerformed += (s, args) =>
@@ -65,13 +65,13 @@ namespace ESP_Reader_and_Sorter
 
             // Extract file names from matches and add them to an array
             string[] fileNames = new string[matches.Count];
-            for (int i = 0; i<matches.Count; i++)
+            for (int i = 0; i < matches.Count; i++)
             {
                 fileNames[i] = matches[i].Value;
             }
 
-        // Print the file names found
-        MessageBox.Show("File names found in the input:");
+            // Print the file names found
+            MessageBox.Show("File names found in the input:");
             foreach (string fileName in fileNames)
             {
                 MessageBox.Show(fileName);

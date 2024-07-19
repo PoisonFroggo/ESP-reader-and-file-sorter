@@ -16,6 +16,9 @@ namespace ESP_Reader_and_Sorter
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            SQLiteHelper.InitializeDatabase();
+
             Application.Run(new Form1());
         }
     }
