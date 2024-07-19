@@ -19,7 +19,7 @@ namespace ESP_Reader_and_Sorter
 {
     public partial class Form1 : Form
     {
-        public string username { get; set; } //Extremely unsafe change later if time allows
+        public static string username { get; set; } //Extremely unsafe change later if time allows
         private SqliteConnection _connection;
         private SqliteCompiler Compiler;
 
@@ -29,6 +29,11 @@ namespace ESP_Reader_and_Sorter
 
         private LoginControl loginControl;
         private AddFilesControl addFilesControl;
+
+        public static string GetUsername()
+        {
+            return username;
+        }
         public Form1()
         {
             InitializeComponent();

@@ -170,6 +170,7 @@ namespace ESP_Reader_and_Sorter
                     listbx_Sort2.Visible = false;
                     btn_browseDatabase.Visible = false;
                     btn_browseFiles.Visible = true;
+                    btn_SubmitDBChanges.Visible = true;
                     labl1.Visible = false;
                     labl2.Visible = false;
                     MessageBox.Show("Browse");
@@ -181,6 +182,7 @@ namespace ESP_Reader_and_Sorter
                     listbx_Sort2.Visible = true;
                     btn_browseDatabase.Visible = true;
                     btn_browseFiles.Visible = false;
+                    btn_SubmitDBChanges.Visible = false;
                     labl1.Visible = true;
                     labl2.Visible = true;
                     MessageBox.Show("Sort");
@@ -292,6 +294,7 @@ namespace ESP_Reader_and_Sorter
             //first run a loop to go through filePaths
             for (int i = 0; i<filePaths.Count(); i++)
             {
+                Username = Form1.GetUsername(); //gets username for account validation
                 espPath = filePaths[i];//espPath
                 espName = fileNames[i];//espName
             }
