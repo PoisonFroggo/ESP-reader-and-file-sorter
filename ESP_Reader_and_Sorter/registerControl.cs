@@ -12,11 +12,13 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace ESP_Reader_and_Sorter
 {
     public partial class LoginControl : UserControl
     {
+        public string Username { get; private set; }
         public LoginControl()
         {
             InitializeComponent();
@@ -33,6 +35,7 @@ namespace ESP_Reader_and_Sorter
         {
             LoginPerformed?.Invoke(this, EventArgs.Empty);
         }
+
         private void btn_SubmitLogin_Click(object sender, EventArgs e)
         {
             // Example logic to handle login submission
@@ -42,9 +45,10 @@ namespace ESP_Reader_and_Sorter
             // Perform your authentication logic here
             bool loginSuccessful = AuthenticateUser(username, password);
 
-            if (loginSuccessful)
+            if (CheckCredentials(username, password))
             {
                 MessageBox.Show("Login successful!");
+                Username = username;
                 OnLoginPerformed();
             }
             else
@@ -64,10 +68,12 @@ namespace ESP_Reader_and_Sorter
         {
             String password = txtbx_Password.Text;
             String username = txtbx_Username.Text;
-            PrintSQLiteDatabases(exePath);
-            InsertCredentials(username, password);
-            //PrintSQLiteDatabases(path);
-            if (password != null && username != null)
+            //PrintSQLiteDatabases(exePath); d
+            if (UsernameExists(username) || PasswordExists(password))
+            {
+                MessageBox.Show("Account with this username already exists");
+            }
+            else
             {
                 InsertCredentials(username, password);
                 PrintTableNames();
@@ -75,8 +81,43 @@ namespace ESP_Reader_and_Sorter
 
         }
 
+        private bool UsernameExists(string username)
+        {
+            string dbFilePath = "database.db";
+            string connectionString = $"Data Source={dbFilePath};";
+            using (SqliteConnection myConn = new SqliteConnection(connectionString))
+            {
+                myConn.Open();
 
+                string checkExistingQuery = @"SELECT COUNT(*) FROM ""Accounts"" WHERE ""username"" = $username";
+                using (SqliteCommand checkCommand = new SqliteCommand(checkExistingQuery, myConn))
+                {
+                    checkCommand.Parameters.AddWithValue("$username", username);
 
+                    int count = Convert.ToInt32(checkCommand.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
+
+        private bool PasswordExists(string password)
+        {
+            string dbFilePath = "database.db";
+            string connectionString = $"Data Source={dbFilePath};";
+            using (SqliteConnection myConn = new SqliteConnection(connectionString))
+            {
+                myConn.Open();
+
+                string checkExistingQuery = @"SELECT COUNT(*) FROM ""Accounts"" WHERE ""pw"" = $pw";
+                using (SqliteCommand checkCommand = new SqliteCommand(checkExistingQuery, myConn))
+                {
+                    checkCommand.Parameters.AddWithValue("$pw", password);
+
+                    int count = Convert.ToInt32(checkCommand.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
 
         public void InsertCredentials(string username, string password)
         {
@@ -87,22 +128,49 @@ namespace ESP_Reader_and_Sorter
 
             //Use to create tables if needed
             string createTableQuery = @"
-            CREATE TABLE IF NOT EXISTS ""Accounts"" (
-            	""ID""	INTEGER NOT NULL UNIQUE,
-            	""username""	TEXT NOT NULL UNIQUE,
-            	""pw""	INTEGER NOT NULL UNIQUE,
-            	""gameName""	TEXT NOT NULL,
-            	PRIMARY KEY(""ID"" AUTOINCREMENT)
-                        );";
+CREATE TABLE IF NOT EXISTS ""Files"" (
+    ""fileName"" TEXT NOT NULL,
+    ""filePath"" TEXT NOT NULL,
+    ""prereq"" TEXT,
+    PRIMARY KEY(""fileName""),
+    FOREIGN KEY(""prereq"") REFERENCES ESP(""fileName"")
+);
+
+CREATE TABLE IF NOT EXISTS ""ESP"" (
+    ""gameName"" TEXT NOT NULL,
+    ""fileName"" TEXT NOT NULL,
+    ""espPath"" TEXT NOT NULL,
+    ""espID"" INTEGER NOT NULL,
+    FOREIGN KEY (""espID"") REFERENCES Accounts(""username"")
+);
+
+CREATE TABLE IF NOT EXISTS ""Accounts"" (
+    ""ID"" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    ""username"" TEXT NOT NULL UNIQUE,
+    ""pw"" TEXT NOT NULL  -- Store passwords securely in production
+);
+";
 
             // Use just in case the tables were done incorrectly 
-            string dropTables = @"DROP TABLE IF EXISTS ""Files""; 
-                DROP TABLE IF EXISTS ""ESP"";
-                DROP TABLE IF EXISTS ""Accounts"";";
+            string dropTables = @"  DROP TABLE IF EXISTS ""Files""; 
+                                    DROP TABLE IF EXISTS ""ESP"";
+                                    DROP TABLE IF EXISTS ""Accounts"";";
 
-            string sql = "CREATE TABLE IF NOT EXISTS highscores (name VARCHAR(20), score INT)";
+            SqliteCommand comm1 = new SqliteCommand(dropTables, myConn);
+            //comm1.ExecuteNonQuery();
+            //MessageBox.Show("Tables dropped");
             SqliteCommand command = new SqliteCommand(createTableQuery, myConn);
             command.ExecuteNonQuery();
+
+            String insertQuery = @"INSERT INTO ""Accounts"" (""username"", ""pw"")
+                                    VALUES ($username, $password)";
+            using (SqliteCommand insertCommand = new SqliteCommand(insertQuery, myConn))
+            {
+                insertCommand.Parameters.AddWithValue("$username", username);
+                insertCommand.Parameters.AddWithValue("$password", password);
+                insertCommand.ExecuteNonQuery();
+            }
+            MessageBox.Show("Credentials inserted successfully!");
 
             myConn.Close();
             MessageBox.Show("Connection Closed");
@@ -132,6 +200,40 @@ namespace ESP_Reader_and_Sorter
         }
 
 
+        public static bool CheckCredentials(string username, string pw)
+        {
+            string dbFilePath = "database.db";
+            string connectionString = $"Data Source={dbFilePath};";
+            bool credentialsValid = false;
+
+            using (SqliteConnection connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT 1 FROM Accounts WHERE username = @username AND pw = @pw LIMIT 1;";
+                using (SqliteCommand command = new SqliteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@username", username);
+                    command.Parameters.AddWithValue("@pw", pw);
+
+                    object result = command.ExecuteScalar();
+                    credentialsValid = (result != null && result != DBNull.Value);
+                }
+
+                connection.Close();
+            }
+
+            return credentialsValid;
+        }
+
+
+
+
+
+
+
+
+        /********************************************DEBUG FUNCTIONS***********************************************************/
         public void PrintTableNames()
         {
             MessageBox.Show("Calling function PrintTableNames");
