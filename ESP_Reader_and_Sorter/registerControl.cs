@@ -76,7 +76,7 @@ namespace ESP_Reader_and_Sorter
             else
             {
                 InsertCredentials(username, password);
-                PrintTableNames();
+                //PrintTableNames();
             }
 
         }
@@ -130,17 +130,16 @@ namespace ESP_Reader_and_Sorter
             string createTableQuery = @"
 CREATE TABLE IF NOT EXISTS ""Files"" (
     ""fileName"" TEXT NOT NULL,
-    ""filePath"" TEXT NOT NULL,
     ""prereq"" TEXT,
     PRIMARY KEY(""fileName""),
     FOREIGN KEY(""prereq"") REFERENCES ESP(""fileName"")
 );
 
 CREATE TABLE IF NOT EXISTS ""ESP"" (
-    ""gameName"" TEXT NOT NULL,
+    ""gameName"" TEXT,
     ""fileName"" TEXT NOT NULL,
     ""espPath"" TEXT NOT NULL,
-    ""espID"" INTEGER NOT NULL,
+    ""espID"" TEXT NOT NULL,
     FOREIGN KEY (""espID"") REFERENCES Accounts(""username"")
 );
 
@@ -156,11 +155,11 @@ CREATE TABLE IF NOT EXISTS ""Accounts"" (
                                     DROP TABLE IF EXISTS ""ESP"";
                                     DROP TABLE IF EXISTS ""Accounts"";";
 
-            SqliteCommand comm1 = new SqliteCommand(dropTables, myConn);
+            //SqliteCommand comm1 = new SqliteCommand(dropTables, myConn);
             //comm1.ExecuteNonQuery();
             //MessageBox.Show("Tables dropped");
-            SqliteCommand command = new SqliteCommand(createTableQuery, myConn);
-            command.ExecuteNonQuery();
+            //SqliteCommand command = new SqliteCommand(createTableQuery, myConn);
+            //command.ExecuteNonQuery();
 
             String insertQuery = @"INSERT INTO ""Accounts"" (""username"", ""pw"")
                                     VALUES ($username, $password)";

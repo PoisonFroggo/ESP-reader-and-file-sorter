@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Data;
+using System.Data.SQLite;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Data.Sqlite;
 
 namespace ESP_Reader_and_Sorter
 {
@@ -32,20 +34,22 @@ namespace ESP_Reader_and_Sorter
         private Label labl2;
 
 
-        private List<string> filePaths = new List<string>(); // List to store file paths, espPath
-        private List<string> fileNames = new List<string>(); // List to store file names, espName
+        private List<string> espPaths = new List<string>(); // List to store file paths, espPath
+        private List<string> espNames = new List<string>(); // List to store file names, espName
+
+        private List<string> fileNames = new List<string>(); //List to store file names, fileName
         
         
         private string espGame; //esp table value gameName
         private string espName; //esp table value fileName
         private string espPath; //esp table value espPath
-        public string Username { get; set; }//Accounts table value username
+        private string espID; //esp table value espID
+        public string Username { get; set; }//Accounts table value username, esp table value espID
         //espID value is the foreign key value of Account's username
 
         /***********************Definitions for Files table values*********************************/
         private string fileName; //files table value fileName
-        private string filePath; //files table value filePath
-        private string prereq; //prereq value is the esp table fileName
+        private string prereq; //prereq value is the esp table fileName(espName)
 
         public AddFilesControl()
         {
@@ -117,10 +121,10 @@ namespace ESP_Reader_and_Sorter
             {
                 foreach (string fileName in OpenFileDialog1.FileNames)
                 {
-                    filePaths.Add(fileName);
+                    espPaths.Add(fileName);
 
                     string fileNameOnly = Path.GetFileName(fileName);
-                    fileNames.Add(fileNameOnly);
+                    espNames.Add(fileNameOnly);
                     listbx_Browse.Items.Add(ReadESP(fileName));
                     MatchMaking();
                 }
@@ -150,14 +154,8 @@ namespace ESP_Reader_and_Sorter
                 fileNames[i] = matches[i].Value;
                 listbx_Browse2.Items.Add(matches[i].Value);
             }
-
-            // Print the file names found
-            MessageBox.Show("File names found in the input:");
-            foreach (string fileName in fileNames)
-            {
-                MessageBox.Show(fileName);
-            }
         }
+
         public void SetVersion(string action)
         {
             string currentAction = action;
@@ -291,18 +289,96 @@ namespace ESP_Reader_and_Sorter
         //Submit changes to the database
         private void btn_SubmitDBChanges_Click(object sender, EventArgs e)
         {
+            SqliteConnection myConn = new SqliteConnection("DataSource=database.db;");
+            myConn.Open();
             //first run a loop to go through filePaths
-            for (int i = 0; i<filePaths.Count(); i++)
+            for (int i = 0; i<espPaths.Count(); i++)
             {
                 Username = Form1.GetUsername(); //gets username for account validation
-                espPath = filePaths[i];//espPath
-                espName = fileNames[i];//espName
+                espPath = espPaths[i];//espPath
+                espName = espNames[i];//espName
+                espID = Username; //espID
+                                  //add these to the table esp
+
+                //run a loop for every esp that adds to files table
+
+                string insertEspQuery = "INSERT INTO esp (espID, espPath, fileName) VALUES (@Username, @espPath, @espName)";
+                SqliteCommand insertEspCommand = new SqliteCommand(insertEspQuery, myConn);
+                insertEspCommand.Parameters.AddWithValue("@Username", espID);
+                insertEspCommand.Parameters.AddWithValue("@espPath", espPath);
+                insertEspCommand.Parameters.AddWithValue("@espName", espName);
+                insertEspCommand.ExecuteNonQuery();
+                for (int x = 0; x<fileNames.Count; x++)
+                {
+                    fileName = fileNames[x];
+                    prereq = espName;
+                    //Add to the files table
+
+                    string insertFilesQuery = "INSERT INTO files (fileName, prereq) VALUES (@fileName, @prereq)";
+                    SqliteCommand insertFilesCommand = new SqliteCommand(insertFilesQuery, myConn);
+                    insertFilesCommand.Parameters.AddWithValue("@fileName", fileName);
+                    insertFilesCommand.Parameters.AddWithValue("@prereq", prereq);
+                    insertFilesCommand.ExecuteNonQuery();
+                }
+
+                myConn.Close();
+
+                GetData();
             }
         }
 
         private void GetGameName()
         {
 
+        }
+
+        private void GetData()
+        {
+            string connectionString = "Data Source=database.db;Version=3;"; // Connection string for SQLite
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+
+            try
+            {
+                connection.Open();
+
+                // Retrieve data from 'esp' table
+                string selectEspQuery = "SELECT espID, espPath, fileName FROM esp";
+                SQLiteCommand selectEspCommand = new SQLiteCommand(selectEspQuery, connection);
+                SQLiteDataAdapter espDataAdapter = new SQLiteDataAdapter(selectEspCommand);
+                DataTable espDataTable = new DataTable();
+                espDataAdapter.Fill(espDataTable);
+
+                // Display data from 'esp' table in a message box
+                string espMessage = "Contents of 'esp' table:\n\n";
+                foreach (DataRow row in espDataTable.Rows)
+                {
+                    espMessage += $"espID: {row["espID"]}, espPath: {row["espPath"]}, fileName: {row["fileName"]}\n";
+                }
+                MessageBox.Show(espMessage, "Data from 'esp' table", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Retrieve data from 'files' table
+                string selectFilesQuery = "SELECT fileName, prereq FROM files";
+                SQLiteCommand selectFilesCommand = new SQLiteCommand(selectFilesQuery, connection);
+                SQLiteDataAdapter filesDataAdapter = new SQLiteDataAdapter(selectFilesCommand);
+                DataTable filesDataTable = new DataTable();
+                filesDataAdapter.Fill(filesDataTable);
+
+                // Display data from 'files' table in a message box
+                string filesMessage = "Contents of 'files' table:\n\n";
+                foreach (DataRow row in filesDataTable.Rows)
+                {
+                    filesMessage += $"fileName: {row["fileName"]}, prereq: {row["prereq"]}\n";
+                }
+                MessageBox.Show(filesMessage, "Data from 'files' table", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error retrieving data: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                connection.Close();
+            }
         }
     }
 }
