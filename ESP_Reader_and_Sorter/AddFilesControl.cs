@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -32,7 +33,7 @@ namespace ESP_Reader_and_Sorter
 
             OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
             OpenFileDialog1.Multiselect = true;
-            OpenFileDialog1.Title = "Seclect a  Fil";
+            OpenFileDialog1.Title = "Select a File";
             if (OpenFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 // put the selected result in the global variable
@@ -44,6 +45,15 @@ namespace ESP_Reader_and_Sorter
                     listBx_files.Items.Add(fileName.Substring(fileName.LastIndexOf(@"\") + 1));
                 }
 
+                /*FileStream fs = new FileStream(fullFileName, FileMode.Open);
+                int hexIn;
+                String hex;
+
+                for (int i = 0; (hexIn = fs.ReadByte()) != -1; i++)
+                {
+                    hex = string.Format("{0:X2}", hexIn);
+
+                }*/
 
             }
         }
